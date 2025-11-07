@@ -1,43 +1,52 @@
 import fetch from 'node-fetch'
 
-var handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text) return conn.reply(m.chat, `❐ Por favor ingresa el enlace del TikTok.`, m, { ...rcanal })
-  try {
-    await m.react('🕒')
+var handler = async (m, { conn, args, usedPrefix, command }) => {
+    if (!args[0]) {
+        throw m.reply(`*[ 🕸️ ] Has olvidado el vínculo... ¿Acaso temes revelar el portal?*\n\n*[ 🧠 ] Ejemplo:* ${usedPrefix + command} https://vm.tiktok.com/ZMkcmTCa6/`);
+    }
 
-    const endpoint = `https://api-adonix.gleeze.com/download/tiktok?apikey=Adofreekey&url=${encodeURIComponent(text)}`
-    const res = await fetch(endpoint).then(r => r.json())
-    if (!res?.status || !res?.data) throw '⚠︎ No se pudo obtener la información del TikTok.'
+    if (!args[0].match(/(https?:\/\/)?(www\.)?(vm\.|vt\.)?tiktok\.com\//)) {
+        throw m.reply(`*[ ⚠️ ] Ese enlace no pertenece al reino de TikTok. No intentes engañar a la sombra.*`);
+    }
 
-    const { title, author, thumbnail, duration, video, audio, likes, comments, shares, views } = res.data
-    const canal = author?.name || author?.username || 'Desconocido'
-    const duracion = `${Math.floor(duration / 60)}m ${duration % 60}s`
+    try {
+        await conn.reply(m.chat, "*[ ⏳ ] Invocando el arte prohibido... Preparando la transferencia dimensional...*", m);
 
-    const caption = `「✦」TikTok Descargado\n\n` +
-                    `> ✐ Título » *${title}*\n` +
-                    `> ✐ Canal » *${canal}*\n` +
-                    `> ✐ Duración » *${duracion}*\n` +
-                    `> ✐ Likes » *${likes}*\n` +
-                    `> ✐ Comentarios » *${comments}*\n` +
-                    `> ✐ Compartidos » *${shares}*\n` +
-                    `> ✐ Vistas » *${views}*\n` +
-                    `> ✐ Link » ${text}`
+        const tiktokData = await tiktokdl(args[0]);
 
-    
-    await conn.sendMessage(m.chat, { video: { url: video }, caption, ...rcanal }, { quoted: m })
+        if (!tiktokData || !tiktokData.data) {
+            throw m.reply("*[ 🕳️ ] La sombra no pudo extraer el contenido. El vínculo está corrompido.*");
+        }
 
-    await conn.sendMessage(m.chat, { audio: { url: audio }, fileName: `${title}.mp3`, mimetype: 'audio/mpeg', ...rcanal }, { quoted: m })
+        const videoURL = tiktokData.data.play;
+        const videoURLWatermark = tiktokData.data.wmplay;
+        const shadowInfo = `*📜 Fragmento extraído:*\n> ${tiktokData.data.title}`;
 
-    await m.react('✔️')
-  } catch (error) {
-    await m.react('✖️')
-    return conn.reply(m.chat, `⚠︎ Ocurrió un error.\n> Usa *${usedPrefix}report* para informarlo.\n\n${error.message}`, m, { ...rcanal })
-  }
-}
+        if (videoURL || videoURLWatermark) {
+            await conn.sendFile(
+                m.chat,
+                videoURL,
+                "shadow_tiktok.mp4",
+                "*`TRANSMISIÓN COMPLETADA - ARCHIVO DE LAS SOMBRAS`*" + `\n\n${shadowInfo}`,
+                m
+            );
+            setTimeout(async () => {}, 1500);
+        } else {
+            throw m.reply("*[ ❌ ] La sombra ha fallado. No se pudo completar la invocación.*");
+        }
+    } catch (error1) {
+        conn.reply(m.chat, `*[ 🩸 ] Error detectado: ${error1}*\n*Las sombras no perdonan los errores...*`, m);
+    }
+};
 
-handler.tags = ['descargas']
 handler.help = ['tiktok']
-handler.command = ['tiktok', 'tt']
-handler.group = true
+handler.tags = ['descargas']
+handler.command = /^(tt|tiktok)$/i;
 
 export default handler
+
+async function tiktokdl(url) {
+    let tikwm = `https://www.tikwm.com/api/?url=${url}?hd=1`
+    let response = await (await fetch(tikwm)).json()
+    return response
+}
