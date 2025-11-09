@@ -40,9 +40,10 @@ Este bot no es solo funcional, es una declaración de estilo. Su diseño modular
   <img src="https://github.com/GianPoolS.png" width="80" height="80" alt="GianPools"style="border-radius: 50%;" />
 </a>
 
-### ** `🌌𝘾𝙍𝙀𝘼𝘿𝙊𝙍 𝙙𝙚 𝙨𝙝𝙖𝙙𝙤𝙬 🌌`**
-<a
-href="https://github.com/yosue891-Chian"><img src="https://github.com/yosue891.png" width="150" height="150" alt="yosue891"/></a>
+## Creador
+<a href="https://github.com/yosue891">
+  <img src="https://files.catbox.moe/0110im.png" width="100px"/>
+</a>
 
 
 
