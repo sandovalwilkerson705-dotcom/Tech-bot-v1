@@ -150,7 +150,7 @@ if (qr && mcode) {
     }];
 
     const interactiveMessage = {
-        image: { url: "https://kirito.my/media/images/15914571_k.jpg" },
+        image: { url: "https://raw.githubusercontent.com/UploadsAdonix/archivos/main/1763165113783-041e7e.jpg" },
         caption: `*✨ ¡Tu código de vinculación está listo! ✨*\n\nUsa el siguiente código para conectarte como Sub-Bot:\n\n*Código:* ${rawCode.match(/.{1,4}/g)?.join("-")}\n\n> Haz clic en el botón de abajo para copiarlo fácilmente.`,
         title: "Código de Vinculación",
         footer: "Este código expirará en 45 segundos.",
