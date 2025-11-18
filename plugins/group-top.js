@@ -1,45 +1,92 @@
-import util from 'util';
-import path from 'path';
+import fetch from "node-fetch";
+import crypto from "crypto";
+import { FormData, Blob } from "formdata-node";
+import { fileTypeFromBuffer } from "file-type";
 
-let user = a => '@' + a.split('@')[0];
+let handler = async (m, { conn }) => {
+  const emoji = '⚠️';
+  const rwait = '⏳';
+  const done = '✅';
+  const error = '❌';
+  const dev = '👑 Shadow-BOT-MD 🎄❄️';
 
-function handler(m, { groupMetadata, command, conn, text, usedPrefix}) {
-  let ps = groupMetadata.participants.map(v => v.id);
-  let a = ps.getRandom(), b = ps.getRandom(), c = ps.getRandom(), d = ps.getRandom(), e = ps.getRandom();
-  let f = ps.getRandom(), g = ps.getRandom(), h = ps.getRandom(), i = ps.getRandom(), j = ps.getRandom();
+  let q = m.quoted ? m.quoted : m;
+  let mime = (q.msg || q).mimetype || '';
+  if (!mime) return conn.reply(m.chat, `${emoji} 🌌 *Las sombras requieren un archivo válido (imagen, video, etc.).*`, m);
 
-  let emoji = pickRandom(['🤓','😅','😂','😳','😎','🥵','😱','🤑','🙄','💩','🍑','🤨','🥴','🔥','👇🏻','😔','👀','🌚']);
-  let estilo = pickRandom(['𝚃𝙾𝙿 𝟷𝟶', 'ＴＯＰ １０', '🧠 𝙏𝙊𝙋 𝙏𝙀𝙉', '👑 Top 10', '💥 𝑻𝒐𝒑 𝟏𝟎']);
-  let iconos = ['🥇','🥈','🥉','🎯','🎲','🎮','🎤','🎧','📱','🧠'];
+  await m.react(rwait);
 
-  if (!text) {
-    return conn.reply(m.chat, `❗ *Uso correcto del comando:*\n\n${usedPrefix}top *<tema>*\n\n📌 Ejemplo:\n${usedPrefix}top más tóxicos del grupo`, m);
-}
+  try {
+    let media = await q.download();
+    if (!media || !Buffer.isBuffer(media)) {
+      await m.react(error);
+      return conn.reply(m.chat, `${emoji} ❄️ *Las sombras no pudieron descargar el archivo.*`, m);
+    }
 
-  let top = `╭━━━〔 ${emoji} ${estilo} ${text.toUpperCase()} ${emoji} 〕━━━╮\n\n` +
-            `${iconos[0]} 1. ${user(a)}\n` +
-            `${iconos[1]} 2. ${user(b)}\n` +
-            `${iconos[2]} 3. ${user(c)}\n` +
-            `${iconos[3]} 4. ${user(d)}\n` +
-            `${iconos[4]} 5. ${user(e)}\n` +
-            `${iconos[5]} 6. ${user(f)}\n` +
-            `${iconos[6]} 7. ${user(g)}\n` +
-            `${iconos[7]} 8. ${user(h)}\n` +
-            `${iconos[8]} 9. ${user(i)}\n` +
-            `${iconos[9]} 10. ${user(j)}\n\n` +
-            `╰━━━━━━━━━━━━━━━━━━━━━━━╯`;
+    let isTele = /image\/(png|jpe?g|gif)|video\/mp4/.test(mime);
+    let link = await catbox(media);
 
-  conn.reply(m.chat, top, m, { mentions: [a, b, c, d, e, f, g, h, i, j]});
-}
+    let txt = `╔══✦🌌🎄✦══╗
+   𝐒𝐇𝐀𝐃𝐎𝐖 𝐆𝐀𝐑𝐃𝐄𝐍 ❄️
+   𝐂𝐀𝐓𝐁𝐎𝐗 𝐔𝐏𝐋𝐎𝐀𝐃𝐄𝐑
+╚══✦🌌🎄✦══╝
 
-handler.help = ['top *<tema>*'];
-handler.tags = ['fun'];
-handler.command = ['top'];
-handler.group = true;
-handler.register = true;
+📂 *Enlace*: ${link}
+📏 *Tamaño*: ${formatBytes(media.length)}
+⏳ *Expiración*: ${isTele ? 'No expira' : 'Desconocido'}
 
+✨ *Invocado por:* ${dev}
+`;
+
+    // Enviar archivo con sendMessage
+    await conn.sendMessage(m.chat, {
+      document: media,
+      mimetype: mime,
+      fileName: `archivo.${mime.split('/')[1] || 'bin'}`,
+      caption: txt
+    }, { quoted: m });
+
+    await m.react(done);
+  } catch (err) {
+    console.error('Error completo:', err);
+    await m.react(error);
+    conn.reply(m.chat, `${emoji} 🌌❄️ *Error al subir el archivo:*\n${err.message}`, m);
+  }
+};
+
+handler.help = ['tourl2'];
+handler.tags = ['transformador'];
+handler.command = ['catbox', 'tourl2'];
 export default handler;
 
-function pickRandom(list) {
-  return list[Math.floor(Math.random() * list.length)];
-                           }
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return `${(bytes / 1024 ** i).toFixed(2)} ${sizes[i]}`;
+}
+
+async function catbox(content) {
+  const fileType = await fileTypeFromBuffer(content) || {};
+  const ext = fileType.ext || 'bin';
+  const mime = fileType.mime || 'application/octet-stream';
+
+  const blob = new Blob([content], { type: mime });
+  const formData = new FormData();
+  const randomBytes = crypto.randomBytes(5).toString("hex");
+
+  formData.append("reqtype", "fileupload");
+  formData.append("fileToUpload", blob, randomBytes + "." + ext);
+
+  const response = await fetch("https://catbox.moe/user/api.php", {
+    method: "POST",
+    body: formData,
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36",
+    },
+  });
+
+  if (!response.ok) throw new Error(`Error en Catbox: ${response.statusText}`);
+  return await response.text();
+                        }
