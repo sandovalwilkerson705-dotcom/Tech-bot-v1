@@ -1,9 +1,9 @@
 import fs from 'fs'
 import { WAMessageStubType} from '@whiskeysockets/baileys'
 
-const newsletterJid = '120363423523597117@newsletter';
-const newsletterName = '👑 SHADOW-BOT-MD| ᴄʜᴀɴɴᴇʟ-ʙᴏᴛ 🌌';
-const packname = 'shadow-BOT-MD'
+const newsletterJid = '120363420632316786@newsletter';
+const newsletterName = '👑 TECH-BOT-V1| ᴄʜᴀɴɴᴇʟ-ʙᴏᴛ 🌌';
+const packname = 'TECH BOT V1'
 
 const iconos = [
   'https://raw.githubusercontent.com/UploadsAdonix/archivos/main/1763165065152-94d843.jpg',
@@ -28,15 +28,15 @@ async function generarBienvenida({ conn, userId, groupMetadata, chat}) {
       .replace(/@subject/g, groupMetadata.subject)
       .replace(/@desc/g, desc);
   } else {
-    const defaultWelcomeMessage = `╭─「 🎄👻 𝐒𝐇𝐀𝐃𝐎𝐖 𝐆𝐀𝐑𝐃𝐄𝐍: 𝐈𝐍𝐈𝐂𝐈𝐎 」─╮
+    const defaultWelcomeMessage = `╭─「 🎄👻*Tech bot dice welcome m/o 」─╮
 
-@user ha sido convocado por las sombras festivas...
-Bienvenid@ al dominio secreto de *@subject*.
+@user ha sido invocado Lara darte la bienvenida...
+Bienvenid@ a la comunidad del bot *@subject*.
 
 ❄️ Tu llegada no es casual. Cada paso será observado.
 🌌 Tu poder será forjado en silencio. Tu lealtad, puesta a prueba.
 
-╰─「 ✨ 𝐈𝐍𝐅𝐎 𝐃𝐄𝐋 𝐆𝐑𝐔𝐏𝐎 」─╯
+╰─「 ✨*INFO DEL GRUPO*」─╯
 🧿 Miembros: ${groupSize}
 📅 Fecha: ${fecha}
 📜 Descripción:
@@ -61,15 +61,15 @@ async function generarDespedida({ conn, userId, groupMetadata, chat}) {
       .replace(/@user/g, username)
       .replace(/@subject/g, groupMetadata.subject);
   } else {
-    const defaultByeMessage = `╭─「 🌌🎄 𝐒𝐇𝐀𝐃𝐎𝐖 𝐆𝐀𝐑𝐃𝐄𝐍: 𝐑𝐄𝐓𝐈𝐑𝐀𝐃𝐀 」─╮
+    const defaultByeMessage = `╭─「 🌌🎄 Tech bot v1 」─╮
 
-@user ha abandonado el círculo de las sombras navideñas.
-Su presencia se desvanece... como todo lo que no deja huella.
+@user ha abandonado la comunidad del bot.
+ojala te valla bien... y algún día regreses.
 
 Grupo: *@subject*
 
-❄️ Que su memoria permanezca en silencio.
-🌌 Las sombras no olvidan, pero tampoco lloran.
+❄️ no vuelvas más a esta comunidad 😂.
+🌌 Tech bot te despide como pendejo.
 
 ╰─「 ✨ 𝐄𝐒𝐓𝐀𝐃𝐎 𝐀𝐂𝐓𝐔𝐀𝐋 」─╯
 📉 Miembros: ${groupSize}
@@ -108,7 +108,7 @@ handler.before = async function (m, { conn, participants, groupMetadata}) {
       },
       externalAdReply: {
         title: packname,
-        body: '🎄🌌 𝐒𝐡𝐚𝐝𝐨𝐰 𝐆𝐚𝐫𝐝𝐞𝐧 𝐭𝐞 𝐝𝐚 𝐥𝐚 𝐛𝐢𝐞𝐧𝐯𝐞𝐧𝐢𝐝𝐚...',
+        body: '🎄🌌 *Tech bot v1 te da la bienvenida*...',
         thumbnailUrl: getRandomIcono(),
         sourceUrl: global.redes,
         mediaType: 1,
@@ -131,7 +131,7 @@ handler.before = async function (m, { conn, participants, groupMetadata}) {
       },
       externalAdReply: {
         title: packname,
-        body: '🎄🌌 𝐋𝐚𝐬 𝐬𝐨𝐦𝐛𝐫𝐚𝐬 𝐬𝐞 𝐜𝐢𝐞𝐫𝐫𝐚𝐧 𝐬𝐢𝐧 𝐫𝐞𝐦𝐨𝐫𝐬𝐨...',
+        body: '🎄🌌 Tech bot v1...',
         thumbnailUrl: getRandomIcono(),
         sourceUrl: global.redes,
         mediaType: 1,
