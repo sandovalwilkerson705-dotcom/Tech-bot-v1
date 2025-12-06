@@ -113,7 +113,7 @@ let handler = async (m, { conn, usedPrefix }) => {
         message: {
           interactiveMessage: {
             body: { text: txt },
-            footer: { text: "🎄 Menú Navideño 🎄" },
+            footer: { text: "🎄 Menú del bot 🎄" },
             header: {
               hasMediaAttachment: !!mediaMessage,
               imageMessage: mediaMessage ? mediaMessage.imageMessage : null
