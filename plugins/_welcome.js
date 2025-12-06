@@ -30,18 +30,11 @@ async function generarBienvenida({ conn, userId, groupMetadata, chat}) {
   } else {
     const defaultWelcomeMessage = `╭─「 🎄👻*Tech bot dice welcome m/o 」─╮
 
-@user ha sido invocado Lara darte la bienvenida...
+@user has sido invocado para darte la bienvenida...
 Bienvenid@ a la comunidad del bot *@subject*.
-
-❄️ Tu llegada no es casual. Cada paso será observado.
-🌌 Tu poder será forjado en silencio. Tu lealtad, puesta a prueba.
-
 ╰─「 ✨*INFO DEL GRUPO*」─╯
 🧿 Miembros: ${groupSize}
 📅 Fecha: ${fecha}
-📜 Descripción:
-${desc}`;
-
     caption = defaultWelcomeMessage
       .replace(/@user/g, username)
       .replace(/@subject/g, groupMetadata.subject);
@@ -64,7 +57,7 @@ async function generarDespedida({ conn, userId, groupMetadata, chat}) {
     const defaultByeMessage = `╭─「 🌌🎄 Tech bot v1 」─╮
 
 @user ha abandonado la comunidad del bot.
-ojala te valla bien... y algún día regreses.
+ojala te valla bien... y algún día no regreses 🤣.
 
 Grupo: *@subject*
 
