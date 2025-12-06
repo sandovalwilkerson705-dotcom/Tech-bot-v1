@@ -83,12 +83,11 @@ let handler = async (m, { conn, usedPrefix }) => {
 ┗━━━━━━━━━━━━━━━━━━━┛\n`;
 
     let txt = intro +
-      `🌐 *Canal  de tech bot v1:*\https://whatsapp.com/channel/0029VbBXJ8LF6smp8yehwL1J` +
       `🎅 Soy *${botNameToShow}*, el ser en las sombras ${(conn.user.jid == global.conn.user.jid ? '(Principal 🅥)' : '(Sub-Bot 🅑)')}\n` +
       `🕒 *Hora:* ${timeStr}\n` +
       `📅 *Fecha:* ${dateStr}\n` +
       `⚙️ *Actividad:* ${uptimeStr}\n\n` +
-      `❄️ *Comandos mágicos:*`;
+      `❄️ *Comandos del bot:*`;
 
     const emojis = ['⚙️', '🫠', '🤖', '👾', '💥', '🪨'];
     let emojiIndex = 0;
