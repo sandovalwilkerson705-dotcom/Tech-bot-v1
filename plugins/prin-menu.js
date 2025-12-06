@@ -75,6 +75,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 🎄 *${saludo}* 🎄
 ✨ Bienvenid@ al menú del bot ❄️
 ┗━━━━━━━━━━━━━━━━━━━┛\n`;
+👋 *Hola %name! %greeting...
 
     let txt = intro +
       `🎅 Soy *Tech bot v1*, bot en desarrollo ${(conn.user.jid == global.conn.user.jid ? '(Principal 🅥)' : '(Sub-Bot 🅑)')}\n` +
