@@ -33,7 +33,7 @@ export async function before(m, { conn }) {
     const userName = user ? user.name : await conn.getName(who)
     const mentionedJids = [who]
 
-    const audioWelcome = 'https://files.catbox.moe/ha1slk.mp3'
+    const audioWelcome = 'https://files.catbox.moe/9ucrk5.mp3'
     const audioGoodbye = 'https://files.catbox.moe/zrt1d4.mp3'
     const thumbnailBuffer = global.getRandomImage()
 
