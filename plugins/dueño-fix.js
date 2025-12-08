@@ -6,7 +6,7 @@ await m.react('🕒')
 try {
 const stdout = execSync('git pull' + (m.fromMe && text ? ' ' + text : ''));
 let messager = stdout.toString()
-if (messager.includes('❀ Ya está cargada la actualización.')) messager = '❀ Los datos ya están actualizados a la última versión.'
+if (messager.includes('❀ Ya está cargada la actualización ✅.')) messager = '❀ Los datos ya están actualizados a la última versión.'
 if (messager.includes('ꕥ Actualizando.')) messager = '❀ Procesando, espere un momento mientras me actualizo.\n\n' + stdout.toString()
 await m.react('✔️')
 conn.reply(m.chat, messager, m)
