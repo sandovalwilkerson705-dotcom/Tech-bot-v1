@@ -38,7 +38,7 @@ export default handler
 async function luminsesi(q, username, logic) {
   try {
     const response = await axios.get(
-      `https://api-adonix.ultraplus.click/ai/geminiact?apikey=Adofreekey&text=${encodeURIComponent(q)}&role=${encodeURIComponent(logic)}`
+      `https://api-adonix.ultraplus.click/ai/geminiact?apikey=DemonKeytechbot&text=${encodeURIComponent(q)}&role=${encodeURIComponent(logic)}`
     )
     return response.data.message
   } catch (error) {
