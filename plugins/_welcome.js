@@ -1,75 +1,91 @@
-import fetch from 'node-fetch';
+import fs from 'fs'
+import path from 'path'
 
-export async function before(m, { conn, participants, groupMetadata}) {
-  if (!m.messageStubType ||!m.isGroup) return true;
+const imgDir = path.resolve('./src/img')
+let images = []
 
-  let vn = 'http://files.hostrta.win/files/xzadonix_94.m4a';
-  let vn2 = 'https://files.hostrta.win/files/xzadonix_89.m4a';
-  let chat = global.db.data.chats[m.chat];
-  const getMentionedJid = () => {
-    return m.messageStubParameters.map(param => `${param}@s.whatsapp.net`);
-};
-
-  let who = m.messageStubParameters[0] + '@s.whatsapp.net';
-  let user = global.db.data.users[who];
-  let userName = user? user.name: await conn.getName(who);
-
-  const thumbnail = await (await fetch('https://files.catbox.moe/uak1qu.jpg')).buffer();
-  const canalOficial = 'https://chat.whatsapp.com/FWQnDSS1tP58HwKojBkQqp?mode=hqrt2';
-
-  if (chat.welcome && m.messageStubType === 27) {
-    this.sendMessage(m.chat, {
-      audio: { url: vn},
-      mimetype: 'audio/mpeg',
-      ptt: false, // ← cambiado a false
-      fileName: `bienvenida.mp3`,
-      contextInfo: {
-        forwardedNewsletterMessageInfo: {
-          newsletterJid: "120363420632316786@newsletter",
-          serverMessageId: '',
-          newsletterName: 'shadow'
-},
-        forwardingScore: 9999999,
-        isForwarded: true,
-        mentionedJid: getMentionedJid(),
-        externalAdReply: {
-          title: `👻 Bienvenido/a ${userName} ✨`,
-          body: `¡Nos alegra tenerte aquí en *${groupMetadata.subject}*!`,
-          previewType: "PHOTO",
-          thumbnail,
-          sourceUrl: canalOficial,
-          showAdAttribution: true
-}
-},
-      seconds: '5278263792'
-}, { quoted: fkontak, ephemeralExpiration: 24 * 60 * 100, disappearingMessagesInChat: 24 * 60 * 100});
+try {
+  images = fs.readdirSync(imgDir).filter(file => /\.(jpe?g|png|webp)$/i.test(file))
+} catch {
+  images = []
 }
 
-  if (chat.welcome && (m.messageStubType === 28 || m.messageStubType === 32)) {
-    this.sendMessage(m.chat, {
-      audio: { url: vn2},
-      mimetype: 'audio/mpeg',
-      ptt: false, // ← cambiado a false
-      fileName: `despedida.mp3`,
-      contextInfo: {
-        forwardedNewsletterMessageInfo: {
-          newsletterJid: "120363420632316786@newsletter",
-          serverMessageId: '',
-          newsletterName: 'shadow'
-},
-        forwardingScore: 9999999,
-        isForwarded: true,
-        mentionedJid: getMentionedJid(),
-        externalAdReply: {
-          title: `👋 Adiós ${userName} 🌌`,
-          body: `Esperamos verte de nuevo por *${groupMetadata.subject}*`,
-          previewType: "PHOTO",
-          thumbnail,
-          sourceUrl: canalOficial,
-          showAdAttribution: true
+global.getRandomImage = () => {
+  if (images.length === 0) return null
+  const randomImage = images[Math.floor(Math.random() * images.length)]
+  return fs.readFileSync(path.join(imgDir, randomImage))
 }
-},
-      seconds: '5278263792'
-}, { quoted: fkontak, ephemeralExpiration: 24 * 60 * 100, disappearingMessagesInChat: 24 * 60 * 100});
-}
+
+export async function before(m, { conn }) {
+  try {
+    if (!m.isGroup) return true
+    const chat = global.db.data.chats[m.chat]
+    if (!chat || !chat.welcome) return true
+
+    const type = m.messageStubType
+    if (![7, 27, 28, 32].includes(type)) return true
+
+    const params = m.messageStubParameters || []
+    if (params.length === 0 && !m.participant) return true
+
+    const who = (params[0] || m.participant) + '@s.whatsapp.net'
+    const user = global.db.data.users[who]
+    const userName = user ? user.name : await conn.getName(who)
+    const mentionedJids = [who]
+
+    const audioWelcome = 'https://files.catbox.moe/ha1slk.mp3'
+    const audioGoodbye = 'https://files.catbox.moe/5cslwo.mp3'
+    const thumbnailBuffer = global.getRandomImage()
+
+    if ([7, 27].includes(type)) {
+      await conn.sendMessage(
+        m.chat,
+        {
+          audio: { url: audioWelcome },
+          mimetype: 'audio/mpeg',
+          fileName: 'welcome.mp3',
+          contextInfo: {
+            mentionedJid: mentionedJids,
+            externalAdReply: {
+              title: "─ W E L C O M E ─🥷🏻",
+              body: `${userName} ha llegado al grupo!`,
+              thumbnail: thumbnailBuffer,
+              mediaType: 1,
+              renderLargerThumbnail: false,
+              sourceUrl: "https://wa.me/" + who.split('@')[0]
+            }
           }
+        },
+        { quoted: m }
+      )
+    }
+
+    if ([28, 32].includes(type)) {
+      await conn.sendMessage(
+        m.chat,
+        {
+          audio: { url: audioGoodbye },
+          mimetype: 'audio/mpeg',
+          fileName: 'goodbye.mp3',
+          contextInfo: {
+            mentionedJid: mentionedJids,
+            externalAdReply: {
+              title: "─Ａ Ｄ Ｉ Ō S─👋🏻",
+              body: `${userName} se ha despedido.`,
+              thumbnail: thumbnailBuffer,
+              mediaType: 1,
+              renderLargerThumbnail: false,
+              sourceUrl: "https://wa.me/" + who.split('@')[0]
+            }
+          }
+        },
+        { quoted: m }
+      )
+    }
+
+    return true
+  } catch (err) {
+    console.error('[ERROR en welcome/adios]:', err)
+    return true
+  }
+}
