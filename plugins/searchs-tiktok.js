@@ -1,83 +1,102 @@
-import axios from 'axios'
-import fs from 'fs'
-import path from 'path'
+import axios from 'axios';
+const baileys = (await import("@whiskeysockets/baileys")).default;
+const { proto } = baileys;
+const { generateWAMessageFromContent, generateWAMessageContent } = baileys;
 
-// Forzar Node a usar ./tmp para archivos temporales
-process.env.TMPDIR = path.join(process.cwd(), 'tmp')
-if (!fs.existsSync(process.env.TMPDIR)) {
-  fs.mkdirSync(process.env.TMPDIR, { recursive: true })
-}
-
-const handler = async (m, { conn, text, usedPrefix, command }) => {
-  try {
+let handler = async (message, { conn, text }) => {
     if (!text) {
-      return conn.reply(m.chat, `💜 Ejemplo de uso: ${usedPrefix + command} Mini Dog`, m);
-    }
-    m.react('🕒');
-    let old = new Date();
-    let res = await ttks(text);
-    let videos = res.data;
-    if (!videos.length) {
-      return conn.reply(m.chat, "No se encontraron videos.", m);
+        return conn.reply(message.chat, ' *¿Qué video de TikTok quieres buscar?*', message, rcanalx);
     }
 
-    let cap = `◜ 𝗧𝗶𝗸𝘁𝗼𝗸 ◞\n\n`
-            + `≡ 🎋 𝖳𝗂́𝗍𝗎𝗅𝗈  : ${videos[0].title}\n`
-            + `≡ ⚜️ 𝖡𝗎́𝗌𝗊𝗎𝖾𝖽𝖺 : ${text}`
+    await conn.reply(message.chat, '', message, rcanalw);
 
-    let medias = videos.map((video, index) => ({
-      type: "video",
-      data: { url: video.no_wm },
-      caption: index === 0
-        ? cap
-        : `👤 \`Titulo\` : ${video.title}\n🍟 \`Process\` : ${((new Date() - old) * 1)} ms`
-    }));
+    async function createVideoMessage(url, caption) {
+        try {
+            const { videoMessage } = await generateWAMessageContent(
+                { video: { url }, caption },
+                { upload: conn.waUploadToServer }
+            );
+            return videoMessage;
+        } catch (e) {
+            console.error('Error creando mensaje de video:', e);
+            return null;
+        }
+    }
 
-    await conn.sendSylphy(m.chat, medias, { quoted: m });
-    m.react('✅');
-  } catch (e) {
-    return conn.reply(m.chat, `Ocurrió un problema al obtener los videos:\n\n` + e, m);
-  }
+    try {
+        const { data: response } = await axios.get(
+            `https://oguri-api.vercel.app/api/search/tiktok?q=${encodeURIComponent(text)}`,
+            { timeout: 30000 }
+        );
+
+        if (!Array.isArray(response?.results) || response.results.length === 0) {
+            return conn.reply(message.chat, ' *No se encontraron videos válidos*', message);
+        }
+
+        const videos = response.results.filter(v => v?.play).slice(0, 10);
+        if (videos.length === 0) {
+            return conn.reply(message.chat, ' *No se encontraron videos con URL válida*', message);
+        }
+
+        const validMessages = [];
+
+        for (const video of videos) {
+            try {
+                const caption = `🎵 ${video.title || 'Sin título'}\nAutor: ${video.author?.nickname || 'Desconocido'}`;
+                const videoMessage = await createVideoMessage(video.play, caption);
+                if (!videoMessage) continue;
+
+                validMessages.push({
+                    body: proto.Message.InteractiveMessage.Body.fromObject({ text: null }),
+                    footer: proto.Message.InteractiveMessage.Footer.fromObject({ text: caption.slice(0, 100) }),
+                    header: proto.Message.InteractiveMessage.Header.fromObject({
+                        hasMediaAttachment: true,
+                        videoMessage
+                    }),
+                    nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({ buttons: [] })
+                });
+            } catch (e) {
+                console.error(`Error procesando video ${video.play}:`, e);
+            }
+        }
+
+        if (validMessages.length === 0) {
+            return conn.reply(message.chat, ' *No se pudieron cargar los videos*', message);
+        }
+
+        const carouselMessage = proto.Message.InteractiveMessage.CarouselMessage.fromObject({
+            cards: validMessages
+        });
+
+        const responseMessage = generateWAMessageFromContent(
+            message.chat,
+            {
+                viewOnceMessage: {
+                    message: {
+                        messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 },
+                        interactiveMessage: proto.Message.InteractiveMessage.fromObject({
+                            body: proto.Message.InteractiveMessage.Body.create({ text: null }),
+                            footer: proto.Message.InteractiveMessage.Footer.create({ text: '🧇 Resultados de búsqueda en TikTok' }),
+                            header: proto.Message.InteractiveMessage.Header.create({ title: null, hasMediaAttachment: false }),
+                            carouselMessage
+                        })
+                    }
+                }
+            },
+            { quoted: message }
+        );
+
+        await conn.relayMessage(message.chat, responseMessage.message, { messageId: responseMessage.key.id });
+
+    } catch (error) {
+        console.error('Error general:', error);
+        await conn.reply(message.chat, ' *Ocurrió un error al procesar la solicitud*', message);
+    }
 };
 
-handler.command = ["ttsesearch", "tiktoks", "ttrndm", "ttks", "tiktoksearch"];
-handler.help = ["tiktoksearch"];
-handler.tags = ["search"];
+handler.help = ['tiktoksearch <query>'];
+handler.tags = ['downloader'];
+handler.command = ['tiktoksearch','tts','ttsearch'];
+handler.register = true;
+
 export default handler;
-
-async function ttks(query) {
-  try {
-    const response = await axios({
-      method: 'POST',
-      url: 'https://tikwm.com/api/feed/search',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Cookie': 'current_language=en',
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36'
-      },
-      data: {
-        keywords: query,
-        count: 20,
-        cursor: 0,
-        HD: 1
-      }
-    });
-
-    const videos = response.data.data.videos;
-    if (videos.length === 0) throw new Error("⚠️ No se encontraron videos para esa búsqueda.");
-
-    const shuffled = videos.sort(() => 0.5 - Math.random()).slice(0, 5);
-    return {
-      status: true,
-      creator: "Made with Ado",
-      data: shuffled.map(video => ({
-        title: video.title,
-        no_wm: video.play,
-        watermark: video.wmplay,
-        music: video.music
-      }))
-    };
-  } catch (error) {
-    throw error;
-  }
-}
