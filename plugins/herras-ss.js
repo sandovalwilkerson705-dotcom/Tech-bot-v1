@@ -8,7 +8,7 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     // Captura de pantalla completa con Thum.io
     let ss = await (await fetch(`https://image.thum.io/get/fullpage/${args[0]}`)).buffer()
 
-    // Envía la imagen con estilo Shadow Garden navideño
+    // Envía la imagen con estilo tech bot navideño
     await conn.sendFile(
       m.chat,
       ss,
