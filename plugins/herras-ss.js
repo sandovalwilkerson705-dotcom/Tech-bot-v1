@@ -12,7 +12,7 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     await conn.sendFile(
       m.chat,
       ss,
-      'shadow_screenshot.png',
+      'tech_screenshot.png',
       `🌌 *Reflejo invocado desde las Sombras – Edición Navideña* 🎅\n🔗 ${args[0]}`,
       m
     )
