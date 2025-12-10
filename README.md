@@ -8,8 +8,4 @@
 
 > 🔶 Damian_yt aporta número
 
-> 🔶 Shadow aporta apis
-
-> 🔶 Ado21 cambia apis
-
 > 🔶 BOT EN DESARROLLO 
