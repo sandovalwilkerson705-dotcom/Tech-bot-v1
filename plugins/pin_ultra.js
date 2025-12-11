@@ -3,7 +3,7 @@ import baileys from '@whiskeysockets/baileys'
 import cheerio from 'cheerio'
 
 let handler = async (m, { conn, text, args, usedPrefix }) => {
-if (!text) return m.reply(`❀ Por favor, ingresa lo que deseas buscar por Pinterest.`)
+if (!text) return m.reply(`👻 pin ejemplo .pin BMW Pinterest.`)
 try {
 await m.react('🕒')
 if (text.includes("https://")) {
@@ -45,8 +45,8 @@ await m.react('❎')
 conn.reply(m.chat, `⚠︎ Se ha producido un problema.\n> Usa *${usedPrefix}report* para informarlo.\n\n` + e, m)
 }}
 
-handler.help = ['pinterest']
-handler.command = ['pinterest', 'pin']
+handler.help = ['ultrapin']
+handler.command = ['ultrapin', 'ultrapin']
 handler.tags = ["buscadores"]
 handler.group = true
 // handler.coin = 5  <- ELIMINADO para que no cobre monedas
