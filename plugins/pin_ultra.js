@@ -3,53 +3,31 @@ import baileys from '@whiskeysockets/baileys'
 import cheerio from 'cheerio'
 
 let handler = async (m, { conn, text, args, usedPrefix }) => {
-if (!text) return m.reply(`👻 pin ejemplo .pin BMW Pinterest.`)
+if (!text) return m.reply(`👻 .pin BMW Pinterest.`)
 try {
 await m.react('🕒')
 if (text.includes("https://")) {
 let i = await dl(args[0])
 let isVideo = i.download.includes(".mp4")
-await conn.sendMessage(m.chat, { [isVideo ? "video" : "image"]: { url: i.download }, caption: i.title }, { quoted: m })
+await conn.sendMessage(m.chat, { [isVideo ? "video" : "image"]: { url: i.download }, caption: i.title }, { quoted: fkontak })
 } else {
 const results = await pins(text)
 if (!results.length) {
 return conn.reply(m.chat, `ꕥ No se encontraron resultados para "${text}".`, m)
 }
 const medias = results.slice(0, 10).map(img => ({ type: 'image', data: { url: img.image_large_url } }))
-await conn.sendMessage(m.chat, {
-product: {
-productImage: {
-url: medias[0]?.data?.url || 'https://telegra.ph/file/0c5c9e8a5d2a9b9a9a9a9.jpg'
-},
-title: `❐ Resultados de: ${text}`,
-description: `🔍 ${medias.length} imágenes encontradas`,
-currencyCode: 'USD',
-priceAmount1000: '0',
-retailerId: 'Pinterest Search',
-},
-sections: [
-{
-title: 'Imágenes Encontradas',
-rows: medias.map((img, i) => ({
-title: `Imagen ${i + 1}`,
-description: `Ver imagen ${i + 1}`,
-rowId: `${usedPrefix}get ${img.data.url}`
-}))
-}
-],
-caption: `❐ 𝖠𝗊𝗎𝗂 𝗍𝗂𝖾𝗇𝖾𝗌 𝗅𝗈𝗌 𝗋𝖾𝗌𝗎𝗅𝗍𝖺𝖽𝗈𝗌 𝖽𝖾 𝗍𝗎 𝖻𝗎𝗌𝗊𝗎𝖾𝖽𝖺.\n🔍 Total: ${medias.length} imágenes`,
-}, { quoted: m })
+await conn.sendAdonix(m.chat, medias, {
+caption: `❐ 𝖠𝗊𝗎𝗂 𝗍𝗂𝖾𝗇𝖾𝗌 𝗅𝗈𝗌 𝗋𝖾𝗌𝗎𝗅𝗍𝖺𝖽𝗈𝗌 𝖽𝖾 𝗍𝗎 𝖻𝗎𝗌𝗊𝗎𝖾𝖽𝖺.`, quoted: m })
 await m.react('✅')
 }} catch (e) {
 await m.react('❎')
 conn.reply(m.chat, `⚠︎ Se ha producido un problema.\n> Usa *${usedPrefix}report* para informarlo.\n\n` + e, m)
 }}
 
-handler.help = ['ultrapin']
-handler.command = ['ultrapin', 'ultrapin']
+handler.help = ['pinterest']
+handler.command = ['pinterest', 'pin']
 handler.tags = ["buscadores"]
 handler.group = true
-// handler.coin = 5  <- ELIMINADO para que no cobre monedas
 
 export default handler
 
