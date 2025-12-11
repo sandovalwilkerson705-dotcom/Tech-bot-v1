@@ -1,8 +1,7 @@
 // 🎭 Lista de stickers para "puta"
-const xdStickers = [
-    'https://raw.githubusercontent.com/UploadsAdonix/archivos/main/1763219268984-97d6ce.webp',
-    'https://raw.githubusercontent.com/UploadsAdonix/archivos/main/1763219298568-dd6d8c.webp',
-    'https://raw.githubusercontent.com/UploadsAdonix/archivos/main/1763219283881-c7393d.webp'
+const putaStickers = [
+    'https://files.catbox.moe/by3el5.webp',
+    'https://files.catbox.moe/xfh3zg.webp'
 ];
 
 function pickRandom(list) {
@@ -11,9 +10,10 @@ function pickRandom(list) {
 
 export async function before(m, { conn }) {
     const text = m.text.toLowerCase();
-    // 🎭 Si escriben "puta" → siempre responde con sticker aleatorio
-    if (/^xd$/i.test(m.text)) {
-        const randomSticker = pickRandom(xdStickers);
+
+    // 🎭 Si escriben "puta" → envía sticker aleatorio
+    if (/^puta$/i.test(m.text)) {
+        const randomSticker = pickRandom(putaStickers);
         await conn.sendMessage(
             m.chat,
             { sticker: { url: randomSticker } },
@@ -21,3 +21,6 @@ export async function before(m, { conn }) {
         );
         return;
     }
+
+    return !0;
+}
