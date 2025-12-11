@@ -24,8 +24,8 @@ await m.react('❎')
 conn.reply(m.chat, `⚠︎ Se ha producido un problema.\n> Usa *${usedPrefix}report* para informarlo.\n\n` + e, m)
 }}
 
-handler.help = ['pinterest']
-handler.command = ['pinterest', 'pin']
+handler.help = ['ultrapin']
+handler.command = ['ultrapin', 'ultrapin']
 handler.tags = ["buscadores"]
 handler.group = true
 
