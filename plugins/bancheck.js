@@ -80,7 +80,7 @@ const handler = async (msg, { conn, text}) => {
       result += `\n  ◦  *Estado:* ✅ Activo y sin sanciones`;
 }
 
-    result += `\n\n> Powered by: *Barboza*`;
+    result += `\n\n> Powered by: *WILKER OFC*`;
 
     await conn.sendMessage(chatID, { text: result}, { quoted: msg});
     await conn.sendMessage(chatID, {
