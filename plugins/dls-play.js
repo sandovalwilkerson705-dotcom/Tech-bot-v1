@@ -1,149 +1,151 @@
+import yts from "yt-search"
 import fetch from "node-fetch"
-import yts from 'yt-search'
 
-const handler = async (m, { conn, text, usedPrefix, command }) => {
-try {
+const handler = async (m, { conn, text, command }) => {
+  if (!text) return m.reply(`👻 *Tech bot v1 invocando*
 
-if (!text.trim()) 
-return conn.reply(m.chat, `👻🖤 *Onii-chan~ escribe el nombre de la canción, porfis* 🤍`, m)
+🤍 Pronuncia el nombre del video o entrega el enlace de YouTube.`)
 
-await m.react('🤍')
+  await m.react("❄️")
 
-const videoMatch = text.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/))([a-zA-Z0-9_-]{11})/)
-const query = videoMatch ? 'https://youtu.be/' + videoMatch[1] : text
+  try {
+    let url = text
+    let title = "Desconocido"
+    let authorName = "Desconocido"
+    let durationTimestamp = "Desconocida"
+    let views = "Desconocidas"
+    let thumbnail = ""
 
-const search = await yts(query)
-const result = videoMatch 
-? search.videos.find(v => v.videoId === videoMatch[1]) || search.all[0] 
-: search.all[0]
+    if (!text.startsWith("https://")) {
+      const res = await yts(text)
+      if (!res?.videos?.length) {
+        return m.reply(`👻 *Tech bot v1 buscando*
 
-if (!result) throw '🖤 *Nyah~ no encontré nada con ese nombre...*'
+🖤 Nada fue encontrado…`)
+      }
 
-const { title, thumbnail, timestamp, views, ago, url, author, seconds } = result
+      const video = res.videos[0]
+      title = video.title
+      authorName = video.author?.name
+      durationTimestamp = video.timestamp
+      views = video.views
+      url = video.url
+      thumbnail = video.thumbnail
+    }
 
-if (seconds > 1800) 
-throw '👻 *Ese video es muuuy largo (máx 10 min, nyah~)*'
+    const isAudio = ["play", "playaudio", "ytmp3"].includes(command)
+    const isVideo = ["play2", "playvid", "ytv", "ytmp4"].includes(command)
 
-const vistas = formatViews(views)
+    if (isAudio) {
+      await downloadMedia(conn, m, url, title, thumbnail, "mp3")
+    } else if (isVideo) {
+      await downloadMedia(conn, m, url, title, thumbnail, "mp4")
+    } else {
+      await m.reply(`👻 *Tech bot v1 — Análisis navideño*
 
-const info = `
-👻 *Kawaii Player — Info del vídeo* 🤍
+🖤 *Título:* ${title}
+🔔 *Canal:* ${authorName}
+🎬 *Duración:* ${durationTimestamp}
+👁️ *Vistas:* ${views}
 
-👻 *Título:* ${title}
-🖤 *Canal:* ${author.name}
-👀 *Vistas:* ${vistas}
-⏰ *Duración:* ${timestamp}
-📅 *Publicado:* ${ago}
-🔗 *Link:* ${url}
+Comandos disponibles:
+• *.ytmp3 ${url}*
+• *.ytmp4 ${url}*`)
+    }
 
-*Espera un momento estoy enviando 👻*
-`.trim()
+  } catch (error) {
+    await m.reply(`👻 *Tech bot v1 — Error en la operación*
 
-const thumb = (await conn.getFile(thumbnail)).data
-
-await conn.sendMessage(m.chat, { image: thumb, caption: info }, { quoted: m })
-
-// AUDIO
-if (['play', 'yta', 'ytmp3', 'playaudio'].includes(command)) {
-const audio = await getAud(url)
-if (!audio?.url) throw '😿 *No pude obtener el audio UwU*'
-
-m.reply(`👻 *Audio listo!* 🎧\n✨ Proxy usado: ${audio.api}`)
-
-await conn.sendMessage(
-m.chat,
-{ audio: { url: audio.url }, fileName: `${title}.mp3`, mimetype: 'audio/mpeg' },
-{ quoted: m }
-)
-
-await m.react('🎶')
+❌ ${error.message}`)
+    await m.react("⚠️")
+  }
 }
 
-// VIDEO
-else if (['play2', 'ytv', 'ytmp4', 'mp4'].includes(command)) {
+const downloadMedia = async (conn, m, url, title, thumbnail, type) => {
+  try {
+    const cleanTitle = cleanName(title) + (type === "mp3" ? ".mp3" : ".mp4")
 
-const video = await getVid(url)
-if (!video?.url) throw '👻 *No pude convertir el video nyah~*'
+    const msg = `👻 *Tech bot v1 — Descarga en curso*
 
-m.reply(`👻 *Video cargado correctamente* 🖤\n🤍 Proxy usado: ${video.api}`)
+🤍 *Título:* ${title}
+🖤 Preparando tu ${type === "mp3" ? "audio navideño" : "video festivo"}...`
 
-await conn.sendFile(m.chat, video.url, `${title}.mp4`, `✨ ${title}`, m)
+    let sent
+    if (thumbnail) {
+      sent = await conn.sendMessage(
+        m.chat,
+        { image: { url: thumbnail }, caption: msg },
+        { quoted: m }
+      )
+    } else {
+      sent = await conn.sendMessage(
+        m.chat,
+        { text: msg },
+        { quoted: m }
+      )
+    }
 
-await m.react('👻')
+    const apiUrl = type === "mp3"
+      ? `https://api-adonix.ultraplus.click/download/ytaudio?url=${encodeURIComponent(url)}&apikey=DemonKeytechbot`
+      : `https://api-adonix.ultraplus.click/download/ytvideo?url=${encodeURIComponent(url)}&apikey=DemonKeytechbot`
+
+    const response = await fetch(apiUrl)
+    const data = await response.json()
+
+    if (!data?.status || !data?.data?.url) {
+      throw new Error("La API no devolvió un archivo válido.")
+    }
+
+    const fileUrl = data.data.url
+    const fileTitle = data.data.title || title
+
+    if (type === "mp3") {
+      await conn.sendMessage(
+        m.chat,
+        {
+          audio: { url: fileUrl },
+          mimetype: "audio/mpeg",
+          fileName: cleanTitle
+        },
+        { quoted: m }
+      )
+    } else {
+      await conn.sendMessage(
+        m.chat,
+        {
+          video: { url: fileUrl },
+          mimetype: "video/mp4",
+          fileName: cleanTitle
+        },
+        { quoted: m }
+      )
+    }
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        text: `👻 *Tech bot v1 — Operación completada*
+
+🤍 *Título:* ${fileTitle}
+🖤 Entregado con magia navideña.`,
+        edit: sent.key
+      }
+    )
+
+    await m.react("✅")
+
+  } catch (error) {
+    await m.reply(`🎄 *Tech bot v1 — Falla en la entrega*
+
+❌ ${error.message}`)
+    await m.react("❌")
+  }
 }
 
-} catch (e) {
-await m.react('💢')
-return conn.reply(
-m.chat, 
-typeof e === 'string' ? e : `⚠️ Ocurrió un error inesperado:\n${e.message}`, 
-m
-)
-}
-}
+const cleanName = (name) => name.replace(/[^\w\s-_.]/gi, "").substring(0, 50)
 
-handler.command = handler.help = [
-'play', 'yta', 'ytmp3',
-'play2', 'ytv', 'ytmp4',
-'playaudio', 'mp4'
-]
-handler.tags = ['dow']
-handler.group = true
+handler.command = handler.help = ["play", "playaudio", "ytmp3", "play2", "playvid", "ytv", "ytmp4", "yt"]
+handler.tags = ["descargas"]
+handler.register = true
+
 export default handler
-
-
-
-// ------- API SYSTEM -------- //
-
-async function getAud(url) {
-const apis = [
-{ api: 'Adonix', endpoint: `${global.APIs.adonix.url}/download/ytaudio?apikey=${global.APIs.adonix.key}&url=${encodeURIComponent(url)}`, extractor: res => res.data?.url },
-{ api: 'ZenzzXD', endpoint: `${global.APIs.zenzxz.url}/downloader/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.data?.download_url },
-{ api: 'ZenzzXD v2', endpoint: `${global.APIs.zenzxz.url}/downloader/ytmp3v2?url=${encodeURIComponent(url)}`, extractor: res => res.data?.download_url },
-{ api: 'Yupra', endpoint: `${global.APIs.yupra.url}/api/downloader/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.link },
-{ api: 'Vreden', endpoint: `${global.APIs.vreden.url}/api/v1/download/youtube/audio?url=${encodeURIComponent(url)}&quality=128`, extractor: res => res.result?.download?.url },
-{ api: 'Vreden v2', endpoint: `${global.APIs.vreden.url}/api/v1/download/play/audio?query=${encodeURIComponent(url)}`, extractor: res => res.result?.download?.url },
-{ api: 'Xyro', endpoint: `${global.APIs.xyro.url}/download/youtubemp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download },
-]
-return await fetchFromApis(apis)
-}
-
-async function getVid(url) {
-const apis = [
-{ api: 'Adonix', endpoint: `${global.APIs.adonix.url}/download/ytvideo?apikey=${global.APIs.adonix.key}&url=${encodeURIComponent(url)}`, extractor: res => res.data?.url },
-{ api: 'ZenzzXD', endpoint: `${global.APIs.zenzxz.url}/downloader/ytmp4?url=${encodeURIComponent(url)}&resolution=360p`, extractor: res => res.data?.download_url },
-{ api: 'ZenzzXD v2', endpoint: `${global.APIs.zenzxz.url}/downloader/ytmp4v2?url=${encodeURIComponent(url)}&resolution=360`, extractor: res => res.data?.download_url },
-{ api: 'Yupra', endpoint: `${global.APIs.yupra.url}/api/downloader/ytmp4?url=${encodeURIComponent(url)}`, extractor: res => res.result?.formats?.[0]?.url },
-{ api: 'Vreden', endpoint: `${global.APIs.vreden.url}/api/v1/download/youtube/video?url=${encodeURIComponent(url)}&quality=360`, extractor: res => res.result?.download?.url },
-{ api: 'Vreden v2', endpoint: `${global.APIs.vreden.url}/api/v1/download/play/video?query=${encodeURIComponent(url)}`, extractor: res => res.result?.download?.url },
-{ api: 'Xyro', endpoint: `${global.APIs.xyro.url}/download/youtubemp4?url=${encodeURIComponent(url)}&quality=360`, extractor: res => res.result?.download }
-]
-return await fetchFromApis(apis)
-}
-
-async function fetchFromApis(apis) {
-for (const { api, endpoint, extractor } of apis) {
-try {
-const controller = new AbortController()
-const timeout = setTimeout(() => controller.abort(), 10000)
-
-const res = await fetch(endpoint, { signal: controller.signal }).then(r => r.json())
-clearTimeout(timeout)
-
-const link = extractor(res)
-if (link) return { url: link, api }
-
-} catch (e) {}
-
-await new Promise(resolve => setTimeout(resolve, 500))
-}
-return null
-}
-
-function formatViews(views) {
-if (views === undefined) return "No disponible"
-if (views >= 1_000_000_000) return `${(views / 1_000_000_000).toFixed(1)}B (${views.toLocaleString()})`
-if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M (${views.toLocaleString()})`
-if (views >= 1_000) return `${(views / 1_000).toFixed(1)}k (${views.toLocaleString()})`
-return views.toString()
-}
